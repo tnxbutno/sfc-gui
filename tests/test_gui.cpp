@@ -61,6 +61,8 @@ private slots:
     void verifyBadFile();
     void encodeError_OddChunkSize();
     void decodeError_Truncated();
+    void repair_FullRecovery();
+    void repair_ErrorOnGarbage();
 };
 
 void TestSfcWorker::singleFileRoundTrip() {
@@ -267,6 +269,57 @@ void TestSfcWorker::decodeError_Truncated() {
     worker.runDecode({QByteArray("too short")});
 
     QVERIFY(!decoded);
+    QVERIFY(!error.isEmpty());
+}
+
+void TestSfcWorker::repair_FullRecovery() {
+    QTemporaryDir dir; QVERIFY(dir.isValid());
+    const QByteArray content("Repair full-recovery round-trip.");
+    auto params = makeParams("repair.bin");
+
+    SfcWorker worker;
+    QString error;
+    QStringList encoded;
+    QObject::connect(&worker, &SfcWorker::error,          [&](QString e)     { error = e; });
+    QObject::connect(&worker, &SfcWorker::encodeFinished, [&](QStringList p) { encoded = p; });
+    worker.runEncode(content, params, dir.filePath("repair"), 1);
+    QVERIFY2(error.isEmpty(), error.toUtf8());
+
+    QFile f(encoded[0]); QVERIFY(f.open(QIODevice::ReadOnly));
+    sfc::ReassemblyResult result;
+    QString innerName;
+    quint64 fullSize = 0;
+    bool got = false;
+    QObject::connect(&worker, &SfcWorker::repairFinished,
+                     [&](sfc::ReassemblyResult r, QString n, quint64 fs, quint32, quint32) {
+                         result = std::move(r); innerName = n; fullSize = fs; got = true;
+                     });
+    worker.runRepair({f.readAll()});
+
+    QVERIFY2(error.isEmpty(), error.toUtf8());
+    QVERIFY(got);
+    QVERIFY(result.status == sfc::ReassemblyStatus::FullyVerified ||
+            result.status == sfc::ReassemblyStatus::ContentVerified);
+    QVERIFY(result.missing_chunks.empty());
+    QByteArray decoded(reinterpret_cast<const char*>(result.content.data()),
+                       static_cast<int>(result.content.size()));
+    QCOMPARE(decoded, content);
+    QCOMPARE(innerName, QString("repair.bin"));
+    QCOMPARE(fullSize, static_cast<quint64>(content.size()));
+}
+
+void TestSfcWorker::repair_ErrorOnGarbage() {
+    SfcWorker worker;
+    QString error;
+    bool got = false;
+    QObject::connect(&worker, &SfcWorker::error,
+                     [&](QString e) { error = e; });
+    QObject::connect(&worker, &SfcWorker::repairFinished,
+                     [&](sfc::ReassemblyResult, QString, quint64, quint32, quint32) { got = true; });
+
+    worker.runRepair({QByteArray("not an sfc file")});
+
+    QVERIFY(!got);
     QVERIFY(!error.isEmpty());
 }
 

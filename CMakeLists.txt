@@ -106,6 +106,7 @@ set(GUI_SOURCES
     widgets/metadataeditor.cpp
     tabs/packtab.cpp
     tabs/unpacktab.cpp
+    tabs/repairtab.cpp
     tabs/infotab.cpp
     tabs/verifytab.cpp
 )
@@ -118,6 +119,7 @@ set(GUI_HEADERS
     widgets/metadataeditor.h
     tabs/packtab.h
     tabs/unpacktab.h
+    tabs/repairtab.h
     tabs/infotab.h
     tabs/verifytab.h
 )

@@ -18,6 +18,8 @@ signals:
     void progress(int percent);
     void encodeFinished(QStringList outputPaths);
     void decodeFinished(sfc::ReassemblyResult result, QString innerFilename);
+    void repairFinished(sfc::ReassemblyResult result, QString innerFilename,
+                        quint64 fullSize, quint32 n, quint32 m);
     void verifyFinished(QString filePath, sfc::ReassemblyResult result);
     void error(QString detail);
 
@@ -28,5 +30,6 @@ public slots:
                       sfc::EncodeParams params, QString outputPath,
                       uint32_t numSegments);
     void runDecode(QList<QByteArray> fileBytes);
+    void runRepair(QList<QByteArray> fileBytes);
     void runVerify(QString filePath, QByteArray fileBytes);
 };

@@ -164,6 +164,49 @@ void SfcWorker::runDecode(QList<QByteArray> fileBytesList) {
     emit decodeFinished(std::move(*result), innerFilename);
 }
 
+void SfcWorker::runRepair(QList<QByteArray> fileBytesList) {
+    std::vector<std::vector<uint8_t>> files;
+    files.reserve(static_cast<size_t>(fileBytesList.size()));
+    for (const auto& ba : fileBytesList) {
+        files.emplace_back(
+            reinterpret_cast<const uint8_t*>(ba.constData()),
+            reinterpret_cast<const uint8_t*>(ba.constData()) + ba.size());
+    }
+
+    auto multi = sfc::decode_multi(std::span<const std::vector<uint8_t>>{files});
+    if (!multi) { emit error(QString::fromStdString(multi.error().detail)); return; }
+    if (multi->empty()) { emit error("No decodable SFC data found"); return; }
+
+    auto& entry = (*multi)[0];
+
+    QString innerFilename;
+    quint64 fullSize = 0;
+    quint32 n = 0, m = 0;
+    {
+        auto span = std::span<const uint8_t>(files[0]);
+        if (span.size() >= 12) {
+            const uint32_t h = sfc::read_u32_le(
+                std::span<const uint8_t, 4>{span.data() + 8, 4});
+            if (span.size() >= static_cast<size_t>(8 + h + 4)) {
+                if (auto hdr = sfc::parse_global_header(
+                        span.subspan(8, static_cast<size_t>(h + 4)))) {
+                    const auto& arr = hdr->inner_filename;
+                    auto end = std::find(arr.begin(), arr.end(), uint8_t{0});
+                    innerFilename = QString::fromUtf8(
+                        reinterpret_cast<const char*>(arr.data()),
+                        static_cast<int>(end - arr.begin()));
+                    fullSize = static_cast<quint64>(hdr->inner_file_size);
+                    n = static_cast<quint32>(hdr->n);
+                    m = static_cast<quint32>(hdr->m);
+                }
+            }
+        }
+    }
+
+    emit progress(100);
+    emit repairFinished(std::move(entry.result), innerFilename, fullSize, n, m);
+}
+
 void SfcWorker::runVerify(QString filePath, QByteArray fileBytes) {
     auto bytes = std::span<const uint8_t>(
         reinterpret_cast<const uint8_t*>(fileBytes.constData()),
