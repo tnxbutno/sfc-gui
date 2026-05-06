@@ -77,3 +77,11 @@ cmake --build build --target sfc_gui_tests
 ```
 
 Tests cover `SfcWorker` (encode/decode/verify signal wiring), `MetadataEditor` (get/set round-trip), and `ChunkGridWidget` (edge cases without crashing).
+
+## macOS: opening a downloaded build
+
+CI builds are ad-hoc signed and will be blocked by Gatekeeper. If the app won't open even via right-click → Open, remove the quarantine attribute in Terminal:
+
+```sh
+xattr -dr com.apple.quarantine sfc-gui.app
+```
