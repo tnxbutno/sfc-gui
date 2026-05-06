@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -90,7 +91,7 @@ jobs:
           cmake --build sfc-gui/build
 
       - name: Run tests
-        run: ./sfc-gui/build/sfc_gui_tests
+        run: ./sfc-gui/build/sfc_gui_tests -platform offscreen
 
       - uses: actions/upload-artifact@v4
         with:
@@ -115,7 +116,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.7.*'
+          version: '6.8.*'
           arch: win64_msvc2022_64
           cache: true
 
