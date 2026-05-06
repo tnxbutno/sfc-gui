@@ -45,13 +45,14 @@ jobs:
 
       - name: Package
         run: |
-          cd sfc-gui/build
-          $(brew --prefix qt)/bin/macdeployqt sfc-gui.app -dmg
+          $(brew --prefix qt)/bin/macdeployqt sfc-gui/build/sfc-gui.app
+          codesign --force --deep --sign - sfc-gui/build/sfc-gui.app
+          cd sfc-gui/build && zip -r sfc-gui-macos.zip sfc-gui.app
 
       - uses: actions/upload-artifact@v4
         with:
           name: sfc-gui-macos
-          path: sfc-gui/build/sfc-gui.dmg
+          path: sfc-gui/build/sfc-gui-macos.zip
 
   # ---------------------------------------------------------------------------
   # Linux
@@ -93,10 +94,13 @@ jobs:
       - name: Run tests
         run: ./sfc-gui/build/sfc_gui_tests -platform offscreen
 
+      - name: Package
+        run: zip -j sfc-gui/build/sfc-gui-linux.zip sfc-gui/build/sfc-gui
+
       - uses: actions/upload-artifact@v4
         with:
           name: sfc-gui-linux
-          path: sfc-gui/build/sfc-gui
+          path: sfc-gui/build/sfc-gui-linux.zip
 
   # ---------------------------------------------------------------------------
   # Windows
@@ -150,12 +154,12 @@ jobs:
       - name: Run tests
         run: ./sfc-gui/build/Release/sfc_gui_tests.exe
 
-      - name: Deploy Qt runtime
-        run: >
-          windeployqt
-          sfc-gui/build/Release/sfc-gui.exe
+      - name: Package
+        run: |
+          windeployqt sfc-gui/build/Release/sfc-gui.exe
+          Compress-Archive -Path sfc-gui/build/Release/* -DestinationPath sfc-gui/build/sfc-gui-windows.zip
 
       - uses: actions/upload-artifact@v4
         with:
           name: sfc-gui-windows
-          path: sfc-gui/build/Release/
+          path: sfc-gui/build/sfc-gui-windows.zip
