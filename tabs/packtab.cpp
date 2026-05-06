@@ -25,13 +25,16 @@
 #include <QUrl>
 #include <QVBoxLayout>
 
+#include <QUuid>
+
 #include <chrono>
 #include <filesystem>
 #include <cstdint>
 
 static sfc::FileUuid randomUuid() {
     sfc::FileUuid uuid;
-    arc4random_buf(uuid.bytes.data(), 16);
+    const QByteArray ba = QUuid::createUuid().toRfc4122();
+    std::copy(ba.begin(), ba.end(), uuid.bytes.begin());
     return uuid;
 }
 
