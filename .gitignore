@@ -1,0 +1,43 @@
+# Build directories
+build/
+build-*/
+
+# CMake generated
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Compiled output
+*.o
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Qt generated
+*_autogen/
+moc_*.cpp
+*.moc
+qrc_*.cpp
+ui_*.h
+
+# macOS bundle
+*.app/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Clangd
+compile_commands.json
+.cache/

@@ -1,0 +1,160 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # macOS
+  # ---------------------------------------------------------------------------
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: sfc-gui
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/sfc
+          path: sfc
+
+      - name: Install dependencies
+        run: brew install cmake pkg-config qt zstd brotli lz4
+
+      - name: Build sfc library
+        run: |
+          cmake -S sfc -B sfc/build \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build sfc/build --target sfc_lib
+
+      - name: Build sfc-gui
+        run: |
+          cmake -S sfc-gui -B sfc-gui/build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt)" \
+            -DSFC_ROOT=${{ github.workspace }}/sfc \
+            -DSFC_BUILD_DIR=${{ github.workspace }}/sfc/build
+          cmake --build sfc-gui/build
+
+      - name: Run tests
+        run: ./sfc-gui/build/sfc_gui_tests
+
+      - name: Package
+        run: |
+          cd sfc-gui/build
+          $(brew --prefix qt)/bin/macdeployqt sfc-gui.app -dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sfc-gui-macos
+          path: sfc-gui/build/sfc-gui.dmg
+
+  # ---------------------------------------------------------------------------
+  # Linux
+  # ---------------------------------------------------------------------------
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: sfc-gui
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/sfc
+          path: sfc
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config \
+            qt6-base-dev \
+            libzstd-dev libbrotli-dev liblz4-dev
+
+      - name: Build sfc library
+        run: |
+          cmake -S sfc -B sfc/build \
+            -DCMAKE_BUILD_TYPE=Release -G Ninja
+          cmake --build sfc/build --target sfc_lib
+
+      - name: Build sfc-gui
+        run: |
+          cmake -S sfc-gui -B sfc-gui/build \
+            -DCMAKE_BUILD_TYPE=Release -G Ninja \
+            -DSFC_ROOT=${{ github.workspace }}/sfc \
+            -DSFC_BUILD_DIR=${{ github.workspace }}/sfc/build
+          cmake --build sfc-gui/build
+
+      - name: Run tests
+        run: ./sfc-gui/build/sfc_gui_tests
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sfc-gui-linux
+          path: sfc-gui/build/sfc-gui
+
+  # ---------------------------------------------------------------------------
+  # Windows
+  # ---------------------------------------------------------------------------
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: sfc-gui
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/sfc
+          path: sfc
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.*'
+          arch: win64_msvc2022_64
+          cache: true
+
+      - name: Install compression libraries (vcpkg)
+        run: >
+          vcpkg install
+          zstd:x64-windows-static
+          brotli:x64-windows-static
+          lz4:x64-windows-static
+        env:
+          VCPKG_ROOT: ${{ env.VCPKG_INSTALLATION_ROOT }}
+
+      - name: Build sfc library
+        run: |
+          cmake -S sfc -B sfc/build `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static
+          cmake --build sfc/build --config Release --target sfc_lib
+
+      - name: Build sfc-gui
+        run: |
+          cmake -S sfc-gui -B sfc-gui/build `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DSFC_ROOT="${{ github.workspace }}/sfc" `
+            -DSFC_BUILD_DIR="${{ github.workspace }}/sfc/build"
+          cmake --build sfc-gui/build --config Release
+
+      - name: Run tests
+        run: ./sfc-gui/build/Release/sfc_gui_tests.exe
+
+      - name: Deploy Qt runtime
+        run: >
+          windeployqt
+          sfc-gui/build/Release/sfc-gui.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sfc-gui-windows
+          path: sfc-gui/build/Release/
