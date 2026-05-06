@@ -1,8 +1,7 @@
-# sfc-gui
+# SFC GUI
 
-Desktop GUI for the SFC container format.
+Desktop GUI for the SFC container format ([tnxbutno/sfc](https://github.com/tnxbutno/sfc)).
 Built with Qt 6 Widgets — native look on macOS, Windows, and Linux.
-Links directly against `libsfc_lib.a`; no CLI dependency.
 
 ## Features
 
@@ -20,56 +19,55 @@ All encode/decode work runs on a background thread; the UI stays responsive with
 | Qt 6 | 6.6+ (Widgets module) |
 | C++23 compiler | Apple Clang 15+, GCC 13+, or MSVC 2022 |
 | CMake | 3.25+ |
-| libsfc_lib.a | built from `../sfc/` |
-
-Build the sfc library first:
-
-```sh
-cd ../sfc && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
-```
+| zstd, brotli, lz4 | any recent version |
+| sfc library | built from [tnxbutno/sfc](https://github.com/tnxbutno/sfc) |
 
 ## Build
 
+### 1. Build the sfc library
+
+Clone [tnxbutno/sfc](https://github.com/tnxbutno/sfc) as a sibling of this repo, then:
+
 ```sh
-cmake -S . -B build \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_PREFIX_PATH=/path/to/qt6
+cd ../sfc
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-**macOS** (Homebrew Qt):
+If you cloned it elsewhere, pass `-DSFC_ROOT=/path/to/sfc` to the GUI's cmake step below.
+
+### 2. Build the GUI
+
+**macOS** (Homebrew):
 
 ```sh
+brew install qt zstd brotli lz4
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_PREFIX_PATH="$(brew --prefix qt)"
 cmake --build build
-./build/sfc-gui.app/Contents/MacOS/sfc-gui
+open build/sfc-gui.app
 ```
 
-**Windows** (vcpkg + MSVC):
+**Linux** (Ubuntu/Debian):
+
+```sh
+sudo apt-get install qt6-base-dev libzstd-dev libbrotli-dev liblz4-dev
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+./build/sfc-gui
+```
+
+**Windows** (Qt installer + vcpkg):
 
 ```powershell
+vcpkg install zstd:x64-windows-static brotli:x64-windows-static lz4:x64-windows-static
 cmake -S . -B build `
   -DCMAKE_BUILD_TYPE=Release `
-  -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc2022_64" `
+  -DCMAKE_PREFIX_PATH="C:/Qt/6.8.x/msvc2022_64" `
   -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 cmake --build build --config Release
 ```
-
-**Linux** (system Qt or aqtinstall):
-
-```sh
-cmake -S . -B build \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_PREFIX_PATH=/path/to/qt6
-cmake --build build
-```
-
-`SFC_ROOT` defaults to `../sfc`. Override with `-DSFC_ROOT=/path/to/sfc` if your layout differs.
-
-Qt apps must be built natively on the target OS — moc runs at build time on the host.
-For producing release binaries across all three platforms without maintaining machines, use GitHub Actions (see `.github/workflows/`).
 
 ## Tests
 
@@ -79,4 +77,3 @@ cmake --build build --target sfc_gui_tests
 ```
 
 Tests cover `SfcWorker` (encode/decode/verify signal wiring), `MetadataEditor` (get/set round-trip), and `ChunkGridWidget` (edge cases without crashing).
-
