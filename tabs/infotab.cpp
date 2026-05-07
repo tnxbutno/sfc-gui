@@ -47,11 +47,25 @@ static QString formatIdName(uint16_t id) {
     switch (id) {
     case 0x0000: return "Unknown";
     case 0x0001: return "ArbitraryBinary";
-    case 0x0010: return "TextDocument";
-    case 0x0011: return "Markdown";
-    case 0x0020: return "JPEG";
-    case 0x0021: return "PNG";
-    case 0x0100: return "SfcDirectory";
+    case 0x0010: return "PlainText";
+    case 0x0011: return "LineOriented";
+    case 0x0020: return "JpegBaseline";
+    case 0x0021: return "JpegProgressive";
+    case 0x0022: return "Jpeg2000";
+    case 0x0023: return "JpegXl";
+    case 0x0024: return "PngNonInterlaced";
+    case 0x0025: return "PngAdam7";
+    case 0x0026: return "WebP";
+    case 0x0030: return "FragmentedMp4";
+    case 0x0031: return "MatroskaWebm";
+    case 0x0040: return "Zip";
+    case 0x0041: return "Gzip";
+    case 0x0042: return "ZstdData";
+    case 0x0043: return "TarZstd";
+    case 0x0050: return "SfcDirectory";
+    case 0x00FF: return "NestedSfc";
+    case 0x0100: return "Pdf";
+    case 0x0101: return "EPub";
     default:     return "Unknown";
     }
 }
