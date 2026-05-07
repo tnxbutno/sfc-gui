@@ -29,7 +29,7 @@ RepairTab::RepairTab(QWidget* parent) : QWidget(parent) {
     auto* root = new QVBoxLayout(this);
     root->setSpacing(10);
 
-    root->addWidget(new QLabel("Input files (one file or multiple P2 segments)", this));
+    root->addWidget(new QLabel("Input files (one file or multiple split-transport segments)", this));
     m_dropZone = new DropZone(DropZone::Mode::MultiFile, this);
     root->addWidget(m_dropZone);
 

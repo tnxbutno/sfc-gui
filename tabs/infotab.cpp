@@ -186,9 +186,9 @@ void InfoTab::showInfo(const QString& path) {
     m_chunks->setText(QString("N=%1  M=%2  S=%3").arg(hdr->n).arg(hdr->m).arg(hdr->s));
     m_compression->setText(compressionName(hdr->compression_algo));
 
-    const bool isP2 = (hdr->flags & 0x02) != 0;
-    const bool isP5 = (hdr->flags & 0x04) != 0;
-    m_profile->setText(isP2 ? "P2 Split Transport" : isP5 ? "P5 Directory" : "P1 Basic");
+    const bool isSplit = (hdr->flags & 0x0001) != 0;  // SPLIT_TRANSPORT bit 0
+    const bool isDir   = (hdr->flags & 0x0100) != 0;  // directory profile bit 8
+    m_profile->setText(isSplit ? "Split transport" : isDir ? "Directory" : "Regular");
 
     // Metadata TLV
     auto getMeta = [&](uint16_t tag) -> QString {

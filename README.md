@@ -6,8 +6,9 @@ Built with Qt 6 Widgets — native look on macOS, Windows, and Linux.
 ## Features
 
 - **Pack** — encode a file or directory into one or more `.sfc` files; set author, description, and other metadata; optional erasure-recovery chunks
-- **Unpack** — decode one file or a set of split segments back to the original content; shows chunk availability grid
-- **Info** — inspect metadata and structure of any `.sfc` file without decoding
+- **Unpack** — decode one file or a set of split-transport segments back to the original content; shows chunk availability grid
+- **Repair** — recover data from a corrupt or incomplete `.sfc` file; shows which chunks are missing and writes whatever content could be recovered
+- **Info** — show metadata and structure of any `.sfc` file without decoding
 - **Verify** — run BLAKE3 integrity checks across a batch of files and get a per-file pass/fail report
 
 All encode/decode work runs on a background thread; the UI stays responsive with a progress bar.
@@ -76,7 +77,7 @@ cmake --build build --target sfc_gui_tests
 ./build/sfc_gui_tests
 ```
 
-Tests cover `SfcWorker` (encode/decode/verify signal wiring), `MetadataEditor` (get/set round-trip), and `ChunkGridWidget` (edge cases without crashing).
+Tests cover `SfcWorker` (encode/decode/verify/repair/split signal wiring), `MetadataEditor` (get/set round-trip), and `ChunkGridWidget` (edge cases without crashing).
 
 ## macOS: opening a downloaded build
 
