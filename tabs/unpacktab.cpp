@@ -192,6 +192,15 @@ void UnpackTab::onDecodeFinished(sfc::ReassemblyResult result, QString innerFile
     m_unpackBtn->setEnabled(true);
     m_progress->setVisible(false);
 
+    if (result.status == sfc::ReassemblyStatus::Partial) {
+        QMessageBox::warning(this, "Incomplete data",
+            QString("Only %1 of the required chunks are available \u2014 the file cannot be fully recovered.\n\n"
+                    "Use the Repair tab to recover as much data as possible.")
+                .arg(result.content.size()));
+        emit statusMessage("Unpack failed: incomplete data, use Repair tab");
+        return;
+    }
+
     QString outDir = m_chooseOutput->isChecked()
         ? m_outputEdit->text()
         : QFileInfo(m_filePaths[0]).absolutePath();
