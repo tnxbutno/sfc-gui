@@ -1,6 +1,6 @@
 # SFC GUI
 
-Desktop GUI for the SFC container format ([tnxbutno/sfc](https://github.com/tnxbutno/sfc)).
+Desktop GUI for the SFC container format ([sfc](https://github.com/tnxbutno/sfc)).
 Built with Qt 6 Widgets — native look on macOS, Windows, and Linux.
 
 ## Features
@@ -21,13 +21,13 @@ All encode/decode work runs on a background thread; the UI stays responsive with
 | C++23 compiler | Apple Clang 15+, GCC 13+, or MSVC 2022 |
 | CMake | 3.25+ |
 | zstd, brotli, lz4 | any recent version |
-| sfc library | built from [tnxbutno/sfc](https://github.com/tnxbutno/sfc) |
+| sfc library | built from [sfc](https://github.com/tnxbutno/sfc) |
 
 ## Build
 
 ### 1. Build the sfc library
 
-Clone [tnxbutno/sfc](https://github.com/tnxbutno/sfc) as a sibling of this repo, then:
+Clone [sfc](https://github.com/tnxbutno/sfc) as a sibling of this repo, then:
 
 ```sh
 cd ../sfc
